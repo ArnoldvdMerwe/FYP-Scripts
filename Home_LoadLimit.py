@@ -7,7 +7,7 @@ home_num = 1
 gpio_pins = {13: False, 15: False}
 GPIO.setmode(GPIO.BOARD)
 for pin in gpio_pins:
-    GPIO.setup(pin, GPIO.out)
+    GPIO.setup(pin, GPIO.OUT)
 
 
 def on_message(client, userdata, msg):
@@ -22,7 +22,12 @@ def on_message(client, userdata, msg):
                 gpio_pins[pin] = True
                 GPIO.output(pin, GPIO.HIGH)
                 set_pin = True
-
+    # If msg is full_activate then fully switch off all loads
+    elif received_msg == "full_activate":
+        for pin in gpio_pins:
+            if not gpio_pins[pin]:
+                gpio_pins[pin] = True
+                GPIO.output(pin, GPIO.HIGH)
     # If msg is deactivate then stop all load control
     elif received_msg == "deactivate":
         for pin in gpio_pins:
