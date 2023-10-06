@@ -46,7 +46,8 @@ except mariadb.Error as e:
 
 def control_home_loads(scheduler):
     # Schedule next call
-    scheduler.enter(20, 1, control_home_loads, (scheduler,))
+    scheduler.enter(15, 1, control_home_loads, (scheduler,))
+    conn.commit()
 
     # If homes do not opt to receive power during loadshedding, then switch the home off
     cur.execute("select * from general where field = 'loadshedding'")
@@ -62,7 +63,6 @@ def control_home_loads(scheduler):
             item for sublist in opted_out_home_numbers for item in sublist
         ]
         for home in opted_out_home_numbers:
-            print("Supposed to publish")
             client.publish(f"homes/home-{home}/load", "full_activate")
 
     # Check if any homes are exceeding the load limit
