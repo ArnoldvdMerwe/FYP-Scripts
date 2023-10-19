@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/HomePlatform-PythonScript.iml" filepath="$PROJECT_DIR$/.idea/HomePlatform-PythonScript.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/FYP-PythonScripts.iml" filepath="$PROJECT_DIR$/.idea/FYP-PythonScripts.iml" />
     </modules>
   </component>
 </project>
