@@ -43,7 +43,7 @@ if client.connect("localhost", 1883, 60) != 0:
     print("Could not connect to MQTT broker!")
     sys.exit(-1)
 
-client.subscribe("shellies/+/emeter/0/#", qos=0)
+client.subscribe("shellies/+/emeter/0/#", qos=2)
 
 try:
     print("Press CTRL+C to exit...")
