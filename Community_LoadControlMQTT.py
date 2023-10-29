@@ -33,21 +33,32 @@ if client.connect("localhost", 1883, 60) != 0:
     print("Could not connect to MQTT broker!")
     sys.exit(1)
 
-# Get homes
-cur.execute("select home_number from home")
-try:
-    home_numbers = cur.fetchall()
-    # Transform list of tuples into single list
-    home_numbers = [item for sublist in home_numbers for item in sublist]
-except mariadb.Error as e:
-    print(f"Error fetching home numbers: {e}")
-    sys.exit(1)
-
 
 def control_home_loads(scheduler):
     # Schedule next call
     scheduler.enter(15, 1, control_home_loads, (scheduler,))
     conn.commit()
+
+    # Get homes
+    cur.execute("select home_number from home")
+    try:
+        home_numbers = cur.fetchall()
+        # Transform list of tuples into single list
+        home_numbers = [item for sublist in home_numbers for item in sublist]
+    except mariadb.Error as e:
+        print(f"Error fetching home numbers: {e}")
+        sys.exit(1)
+
+    # If homes do not have an account balance left over, then switch the homes off
+    cur.execute("select home_number from home where account_balance = 0")
+    balance_home_numbers = cur.fetchall()
+    if len(balance_home_numbers) != 0:
+        # Transform list of tuples into single list
+        balance_home_numbers = [
+            item for sublist in balance_home_numbers for item in sublist
+        ]
+        for home in balance_home_numbers:
+            client.publish(f"homes/home-{home}/load", "full_activate")
 
     # If homes do not opt to receive power during loadshedding, then switch the home off
     cur.execute("select * from general where field = 'loadshedding'")
@@ -88,12 +99,13 @@ def control_home_loads(scheduler):
             if current_power_usage > load_limit:
                 load_limited_homes.append(home)
                 client.publish(f"homes/home-{home}/load", "activate")
-
-    unmessaged_home_numbers = list(
-        (set(home_numbers) - set(opted_out_home_numbers)) - set(load_limited_homes)
-    )
-    for home in unmessaged_home_numbers:
-        client.publish(f"homes/home-{home}/load", "deactivate")
+    else:
+        unmessaged_home_numbers = list(
+            (set(home_numbers) - set(opted_out_home_numbers))
+            - set(balance_home_numbers)
+        )
+        for home in unmessaged_home_numbers:
+            client.publish(f"homes/home-{home}/load", "deactivate")
 
 
 # Setup scheduler
