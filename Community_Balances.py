@@ -1,9 +1,24 @@
+"""
+Python file : Community_Balances.py
+This file is responsible for managing the account balances of the homeowners.
+It repeatedly calculates the balances every update interval.
+The update interval is retrieved from config.ini.
+This should match the MQTT interval of the Shelly EMs.
+It uses the total measurement of the Shelly EMs.
+"""
+
 from influxdb import InfluxDBClient
 import mariadb
 import sys
 import sched
 import time
 from datetime import datetime
+import configparser
+
+# Read update interval from config file
+config = configparser.ConfigParser()
+config.read("config.ini")
+update_interval: int = int(config["DEFAULT"]["MQTT_time_interval"])
 
 # Connect to MariaDB platform
 try:
@@ -56,7 +71,7 @@ for home_num in home_numbers:
 
 def calculate_balances(scheduler):
     # Schedule next call
-    scheduler.enter(15, 1, calculate_balances, (scheduler,))
+    scheduler.enter(update_interval, 1, calculate_balances, (scheduler,))
 
     # Check for changes in homes
     cur.execute("select home_number from home")
@@ -154,5 +169,5 @@ def time_in_range(start, end, x):
 
 # Setup scheduler
 s = sched.scheduler(time.time, time.sleep)
-s.enter(15, 1, calculate_balances, (s,))
+s.enter(update_interval, 1, calculate_balances, (s,))
 s.run()

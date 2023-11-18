@@ -1,9 +1,26 @@
+"""
+Python file : Community_LoadControlMQTT.py
+This file is responsible for managing the load control of the community.
+It checks if load control is active and whether any homes are over the load limit.
+If homes are over the load limit, MQTT is used to send an instruction to reduce load.
+If load control is inactive, it switches the homes back on.
+It repeatedly runs based on an update interval.
+The update interval is retrieved from config.ini.
+This should match the MQTT interval of the Shelly EMs.
+"""
+
 from influxdb import InfluxDBClient
 import mariadb
 import sys
 import sched
 import time
 import paho.mqtt.client as paho
+import configparser
+
+# Read update interval from config file
+config = configparser.ConfigParser()
+config.read("config.ini")
+update_interval: int = int(config["DEFAULT"]["MQTT_time_interval"])
 
 # Connect to MariaDB platform
 try:
@@ -32,14 +49,14 @@ client = paho.Client(client_id="Community_LoadControl")
 if client.connect("localhost", 1883, 60) != 0:
     print("Could not connect to MQTT broker!")
     sys.exit(1)
+client.loop_start()
 
 
 def control_home_loads(scheduler):
-    print("Function called!")
-    # Schedule next call
-    scheduler.enter(15, 1, control_home_loads, (scheduler,))
+    global update_interval
+    update_interval = int(config["DEFAULT"]["MQTT_time_interval"])
+    # Update database information
     conn.commit()
-
     # Get homes
     cur.execute("select home_number from home")
     try:
@@ -100,7 +117,9 @@ def control_home_loads(scheduler):
             if current_power_usage > load_limit:
                 load_limited_homes.append(home)
                 client.publish(f"homes/home-{home}/load", "activate")
-                print(f"Home-{home} load reduced!")
+                # Allow time for load to reduce if fast update interval
+                if update_interval < 5:
+                    update_interval = 5
     else:
         unmessaged_home_numbers = list(
             (set(home_numbers) - set(opted_out_home_numbers))
@@ -108,10 +127,12 @@ def control_home_loads(scheduler):
         )
         for home in unmessaged_home_numbers:
             client.publish(f"homes/home-{home}/load", "deactivate")
-            print(f"Home-{home} fully on again!")
+
+    # Schedule next call
+    scheduler.enter(update_interval, 1, control_home_loads, (scheduler,))
 
 
 # Setup scheduler
 s = sched.scheduler(time.time, time.sleep)
-s.enter(2, 1, control_home_loads, (s,))
+s.enter(update_interval, 1, control_home_loads, (s,))
 s.run()
