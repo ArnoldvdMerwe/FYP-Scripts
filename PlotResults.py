@@ -35,8 +35,9 @@ figure.set_size_inches(12, 8)
 plt.savefig("Data/probability_plot.png", dpi=600)
 
 plt.figure(layout="constrained")
+colors = ["#4E2A69", "#1A8AA2"]
 sns.set_theme()
-
+sns.set_palette(sns.color_palette(colors))
 sns.scatterplot(
     x=df["Reference Power [W]"],
     y=df["Shelly Power Measurement [W]"],
@@ -44,14 +45,15 @@ sns.scatterplot(
 )
 plt.plot([], [])
 sns.lineplot(x=range(1800), y=range(1800), label="True power")
-sns.lineplot(x=points, y=points * coefficient, label="Fitted line")
+# sns.lineplot(x=points, y=points * coefficient, label="Fitted line")
 plt.xlabel("Reference power [W]")
 plt.ylabel("Shelly EM power measurement [W]")
+plt.title("Comparison of measured power of energy meters against reference power")
 plt.legend()
 
 figure = plt.gcf()
-figure.set_size_inches(9, 6)
-plt.savefig("Data/scatter_plot.png", dpi=600)
+figure.set_size_inches(7, 4.5)
+plt.savefig("Data/scatter_plot.png", dpi=750)
 
 # Zoom in
 plt.xlim(999.999, 1000.001)

@@ -35,6 +35,7 @@ if client.connect("localhost", 1883, 60) != 0:
 
 
 def control_home_loads(scheduler):
+    print("Function called!")
     # Schedule next call
     scheduler.enter(15, 1, control_home_loads, (scheduler,))
     conn.commit()
@@ -99,6 +100,7 @@ def control_home_loads(scheduler):
             if current_power_usage > load_limit:
                 load_limited_homes.append(home)
                 client.publish(f"homes/home-{home}/load", "activate")
+                print(f"Home-{home} load reduced!")
     else:
         unmessaged_home_numbers = list(
             (set(home_numbers) - set(opted_out_home_numbers))
@@ -106,6 +108,7 @@ def control_home_loads(scheduler):
         )
         for home in unmessaged_home_numbers:
             client.publish(f"homes/home-{home}/load", "deactivate")
+            print(f"Home-{home} fully on again!")
 
 
 # Setup scheduler
