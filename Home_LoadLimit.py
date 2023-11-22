@@ -1,8 +1,17 @@
+"""
+Python file : Home_LoadLimit.py
+This script runs on the home platform.
+It creates a MQTT client that subscribes on the topic "homes/home-{num}/load".
+Note that the home number must be set correctly before running it on the home platform.
+The relays are switched through GPIO as instructed by the community platform.
+"""
+
 import RPi.GPIO as GPIO
 import paho.mqtt.client as paho
 import sys
 
 # Setup
+# Set home number (IMPORTANT)
 home_num = 1
 gpio_pins = {13: False, 15: False}
 GPIO.setmode(GPIO.BOARD)

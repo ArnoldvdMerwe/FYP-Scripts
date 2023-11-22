@@ -1,3 +1,10 @@
+"""
+Python file : Community_ShellyMQTT.py
+This script runs on the community platform.
+A MQTT client is created that is subscribed to the first channel measurements of all Shelly devices.
+Each measurement is stored in the appropriate measurement table in InfluxDB.
+"""
+
 import paho.mqtt.client as paho
 from influxdb import InfluxDBClient
 from datetime import datetime, timezone
@@ -12,7 +19,7 @@ def get_second_topic_level(topic):
     return second_level_topic
 
 
-# Get the topic level which shows what property is being sent.
+# Get the topic level which shows what measurement type is being sent
 def get_last_topic_level(topic):
     last_slash_index = topic.rfind("/")
     last_topic = topic[last_slash_index + 1 :]
