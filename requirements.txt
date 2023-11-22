@@ -1,0 +1,8 @@
+paho-mqtt~=1.6.1
+matplotlib~=3.8.0
+pandas~=2.1.1
+seaborn~=0.13.0
+numpy~=1.26.1
+statsmodels~=0.14.0
+mariadb~=1.1.7
+influxdb~=5.3.1
